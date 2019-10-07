@@ -18,3 +18,5 @@
 -upload all scripts to this repo - work off new branch "alec"
 
 -please issue a new pull request to master when your work is ready for review. Please do this once every day
+
+-check in with me everyday: what you did, what your challenges are currently, and what plan is for tomorrow
