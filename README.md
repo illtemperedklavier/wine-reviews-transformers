@@ -10,7 +10,7 @@
 
 -try both baseline models (e.g. LR, SVM) and state-of-art (e.g. transformers)
 
--write your own preprocessing, model, and train/eval scripts
+-write your own preprocessing, model, and train/eval scripts - please aim for an object-oriented, extensible model pipeline
 
 -report all final scores in terms of accuracy (num correct/total)
 
@@ -19,4 +19,4 @@
 
 -please issue a new pull request to master when your work is ready for review. Please do this once every day
 
--check in with me everyday: what you did, what your challenges are currently, and what plan is for tomorrow
+-please send Nicola a check-in email every night with: 1) What you completed during the day; 2) What your major challenges are; 3) What you are planning on doing tomorrow
