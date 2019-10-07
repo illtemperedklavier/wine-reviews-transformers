@@ -13,6 +13,4 @@
 
 ## Deliverables: 
 -upload all scripts to this repo - work off new branch "alec"
--please issue a new pull request to master when your work is ready for review. Please do this once every day.
--
-
+-please issue a new pull request to master when your work is ready for review. Please do this once every day
