@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-
 #https://www.toptal.com/machine-learning/nlp-tutorial-text-classification
 
 
@@ -10,72 +9,97 @@ import pandas as pd
 from collections import Counter
 from sklearn.model_selection import train_test_split
 from keras.models import Sequential
-from keras.layers import Dense, Conv1D, Flatten
+from keras.layers import Dense, Conv1D, Flatten, Input, Dropout, LSTM
 from keras.layers.embeddings import Embedding
 from keras.preprocessing import sequence
 from keras.utils import to_categorical
-from util import get_top_x
 import matplotlib.pyplot as plt
+import pickle
+import jsonpickle as json
+from util import input_maker
 
+print("imported everything")
 
-df = pd.read_csv(r"D:\Data\wine-reviews\winemag-data-130k-v2.csv")
-
-counter = Counter(df['variety'].tolist())
-
-type(counter)
-
-top_10_varieties = {i[0]: idx for idx, i in enumerate(counter.most_common(10))}
-df = df[df['variety'].map(lambda x: x in top_10_varieties)]
-
-df['variety'].value_counts()
-
-description_list = df['description'].tolist()
-
-
-varietal_list = [top_10_varieties[i] for i in df['variety'].tolist()]
-varietal_list = np.array(varietal_list)
-#note: this is making a list of the wine varieties by their index in the top 10
-
-varietal_list[:10]
+MAX_VOCAB_SIZE = 5000
+VECTOR_DIM = 300
+LATENT_DIM = 25
 
 
 
-top_10_varieties = {i[0]: idx for idx, i in enumerate(counter.most_common(10))}
+"""
+make inputs
+"""
+
+inputs, outputs = input_maker.get_inputs_outputs()
+print("got inputs and outputs")
 
 
-df = df[df['variety'].map(lambda x: x in top_10_varieties)]
+max_review_length = max(len(x) for x in inputs)
+train_x, test_x, train_y, test_y = train_test_split(inputs, outputs, test_size=0.3)
 
-description_list = df['description'].tolist()
+"""
+make embedding matrix
+"""
+
+with open(r"D:\Data\wine-reviews\fasttext_vecs.json", "r") as f:
+    fasttext_vectors = json.decode(f.read())
+    
+with open(r"D:\Data\wine-reviews\wine-words.pkl", 'rb') as f:
+    words = pickle.load(f)
+
+with open(r"D:\Data\wine-reviews\fdist1.pkl", "rb") as f:
+    fdist1 = pickle.load(f)
+    
+words = [w for (w,_) in fdist1.most_common(MAX_VOCAB_SIZE)]
+
+    
+embeddings = np.zeros((MAX_VOCAB_SIZE+1, VECTOR_DIM))
+idx2word = {}
+word2idx = {}
+i = 1
 
 
-mapped_list, word_list = get_top_x.filter_to_top_x(description_list, 2500, 10)
+for w in range(MAX_VOCAB_SIZE):
+    vec = fasttext_vectors.get(w)
+    if vec is not None:
+        vec = vec.astype(np.float_)
+        embeddings[i] = vec
+        idx2word[i] = w
+        word2idx[w] = i
+    else:
+        vec = np.random.uniform(low = 0.0, high=2.0 , size = VECTOR_DIM)
+        embeddings[i] = vec
+        idx2word[i] = w
+        word2idx[w] = i
+    i+=1 
 
 
-varietal_list_o = [top_10_varieties[i] for i in df['variety'].tolist()]
+print("made embedding matrix")
 
 
-varietal_list = to_categorical(varietal_list_o)
+embedding_layer = Embedding(
+  MAX_VOCAB_SIZE+1,
+  VECTOR_DIM,
+  weights=[embeddings],
+  # trainable=False
+)
 
-max_review_length = max(len(x) for x in mapped_list)
 
+input_ = Input(shape=(max_review_length,))
 
-mapped_list = sequence.pad_sequences(mapped_list, maxlen=max_review_length)
-train_x, test_x, train_y, test_y = train_test_split(mapped_list, varietal_list, test_size=0.3)
+cnn1 = Sequential()
 
+cnn1.add(Embedding(MAX_VOCAB_SIZE+1, VECTOR_DIM, weights=[embeddings],input_length=max_review_length))
+cnn1.add(Conv1D(50, 5))
+cnn1.add(Flatten())
+cnn1.add(Dense(100, activation='relu'))
+cnn1.add(Dropout(0.2))
+cnn1.add(Dense(max(varietal_list_o) + 1, activation='softmax'))
+cnn1.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 
-embedding_vector_length = 64
+history = cnn1.fit(train_x, train_y, epochs=1000, validation_split=0.1,batch_size=64)
 
-model = Sequential()
-
-model.add(Embedding(2500, embedding_vector_length, input_length=max_review_length))
-model.add(Conv1D(50, 5))
-model.add(Flatten())
-model.add(Dense(100, activation='relu'))
-model.add(Dense(max(varietal_list_o) + 1, activation='softmax'))
-model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
-history = model.fit(train_x, train_y, epochs=5, validation_split=0.1,batch_size=64)
-
-y_score = model.predict(test_x)
+y_score = cnn1.predict(test_x)
 y_score = [[1 if i == max(sc) else 0 for i in sc] for sc in y_score]
 n_right = 0
 
@@ -83,12 +107,25 @@ for i in range(len(y_score)):
     if all(y_score[i][j] == test_y[i][j] for j in range(len(y_score[i]))):
         n_right += 1
 
-
 print("Accuracy: %.2f%%" % ((n_right/float(len(test_y)) * 100)))
-
 plt.plot(history.history['acc'])
-
-
 list(history.history.keys())
 
 
+"""
+LSTM model 
+"""
+
+
+# create the model
+#VECTOR_DIM
+
+model = Sequential()
+model.add(Embedding(MAX_VOCAB_SIZE + 1, VECTOR_DIM, weights=[embeddings], input_length=max_review_length))
+model.add(LSTM(20))
+model.add(Dense(10, activation='sigmoid'))
+model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+print(model.summary())
+history = model.fit(train_x, train_y, validation_data=(test_x, test_y), epochs=500, batch_size=64)
+
+model.save(r"D:\Documents\Semantic-Health\lstm1.hdf5")

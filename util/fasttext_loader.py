@@ -38,13 +38,16 @@ with open("D:\Data\wine-reviews\wine-words.pkl", "rb") as f:
 
 
 path = r"D:\Data\FastText\wiki-news-300d-1M.vec\wiki-news-300d-1M.vec"
+subword_path = r"D:\Data\FastText\wiki-news-300d-1M-subword.vec\wiki-news-300d-1M-subword.vec"
 
 fasttext_wine = {}
 
 total = 0
-fin = io.open(path, 'r', encoding='utf-8', newline='\n', errors='ignore')
+fin = io.open(subword_path, 'r', encoding='utf-8', newline='\n', errors='ignore')
 line = fin.readline() #this line is a header, I can ignore it
 total+=1
+print("starting to read the file")
+
 while line:
     line = fin.readline()
     total+=1
@@ -52,7 +55,7 @@ while line:
     word = line[0]
     vector = line[1:]
     if word in words:
-        fasttext_wine[word] = np.asarray(vector)  
+        fasttext_wine[word] = np.asarray(vector).astype(np.float_)
     
     
     if total % 100000 == 0:
