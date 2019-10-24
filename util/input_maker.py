@@ -77,5 +77,17 @@ def get_inputs_outputs():
     
     return mapped_list, varietal_list
 
-inputs, outputs = get_inputs_outputs()
+
+def get_raw_reviews():
+    df = pd.read_csv(r"D:\Data\wine-reviews\winemag-data-130k-v2.csv")
+
+    counter = Counter(df['variety'].tolist())
+        
+    top_10_varieties = {i[0]: idx for idx, i in enumerate(counter.most_common(10))}
+    df = df[df['variety'].map(lambda x: x in top_10_varieties)]
+        
+    #df['variety'].value_counts()
+        
+    description_list = df['description'].tolist()
+    return description_list
 
