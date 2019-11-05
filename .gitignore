@@ -104,3 +104,5 @@ venv.bak/
 .mypy_cache/
 /util/glovePickle.50
 /util/glovePickle.50
+/pretrained-BERT tutorial.ipynb
+/util/cola_inputs.py
