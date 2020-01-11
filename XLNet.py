@@ -91,7 +91,7 @@ dev_inputs, test_inputs, dev_labels, test_labels = train_test_split(validation_i
 
 train_masks, validation_masks, _, _ = train_test_split(attention_masks, input_ids,random_state=2018, test_size=0.1)
 
-dev_masks, test_masks, _, _ = train_test_split(attention_masks, input_ids,random_state=2018,test_size=0.1)
+dev_masks, test_masks, _, _ = train_test_split(validation_masks, input_ids,random_state=2018,test_size=0.1)
 
 
 
@@ -103,13 +103,22 @@ train_labels = torch.tensor(train_labels.astype(np.int)).long()
 validation_labels = torch.tensor(validation_labels.astype(np.int)).long()
 train_masks = torch.tensor(train_masks).long()
 validation_masks = torch.tensor(validation_masks).long()
+dev_inputs = torch.tensor(dev_inputs).long()
+test_inputs = torch.tensor(test_inputs).long()
+dev_labels = torch.tensor(dev_labels.astype(np.int)).long()
+test_labels = torch.tensor(test_labels.astype(np.int)).long()
+dev_masks = torch.tensor(dev_masks).long()
+test_masks = torch.tensor(test_masks).long()
 
-print("train_inputs.shape: ", train_inputs.shape)
-print("validation_inputs: ", validation_inputs.shape)
-print("train_labels", train_labels.shape)
-print("validation_labels", validation_labels.shape)
-print("train_masks", train_masks.shape)
-print("validation_masks", validation_masks.shape)
+print("converted to tensors")
+
+
+#print("train_inputs.shape: ", train_inputs.shape)
+#print("validation_inputs: ", validation_inputs.shape)
+#print("train_labels", train_labels.shape)
+#print("validation_labels", validation_labels.shape)
+#print("train_masks", train_masks.shape)
+#print("validation_masks", validation_masks.shape)
 
 batch_size = 16
 
@@ -123,6 +132,8 @@ train_dataloader = DataLoader(train_data, sampler=train_sampler, batch_size=batc
 validation_data = TensorDataset(validation_inputs, validation_masks, validation_labels)
 validation_sampler = SequentialSampler(validation_data)
 validation_dataloader = DataLoader(validation_data, sampler=validation_sampler, batch_size=batch_size)
+
+# need to make dev and test for this
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -199,6 +210,7 @@ for _ in trange(epochs, desc="Epoch"):
     
     
     # Validation
+	#validation with dev set 
 
     # Put model in evaluation mode to evaluate loss on the validation set
     model.eval()
