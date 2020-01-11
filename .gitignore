@@ -106,6 +106,7 @@ venv.bak/
 /util/glovePickle.50
 /pretrained-BERT tutorial.ipynb
 /util/cola_inputs.py
+/data/winemag-data-130k-v2.csv
 /XLNet.py.orig
 data/
 .vs/
