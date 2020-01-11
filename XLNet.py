@@ -68,21 +68,16 @@ def mask_maker(description):
     return z
 
 
-
+# Create a mask of 1s for each token followed by 0s for padding
 for d in description_list:
 	attention_masks.append(mask_maker(d))
-
- 
+	
+print("masks made")
 """
-# Create a mask of 1s for each token followed by 0s for padding
 for seq in input_ids:
     seq_mask = [float(i>0) for i in seq]
     attention_masks.append(seq_mask)
-"""
-
-print("masks made")
-
-
+	"""
 	
 
 train_inputs, validation_inputs, train_labels, validation_labels = train_test_split(input_ids, labels, random_state=2018, test_size=0.1)
@@ -133,14 +128,12 @@ validation_data = TensorDataset(validation_inputs, validation_masks, validation_
 validation_sampler = SequentialSampler(validation_data)
 validation_dataloader = DataLoader(validation_data, sampler=validation_sampler, batch_size=batch_size)
 
-# need to make dev and test for this
-
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 n_gpu = torch.cuda.device_count()
-print(torch.cuda.get_device_name(0))
+#torch.cuda.get_device_name(0)
 
-model = XLNetForSequenceClassification.from_pretrained("xlnet-base-cased", num_labels=NUM_WINES)
+model = XLNetForSequenceClassification.from_pretrained("xlnet-base-cased", num_labels=10)
 
 model.cuda()
 
@@ -155,8 +148,7 @@ optimizer_grouped_parameters = [
 
 optimizer = AdamW(optimizer_grouped_parameters,
                      lr=2e-5)
-
-
+					 
 def flat_accuracy(preds, labels):
     pred_flat = np.argmax(preds, axis=1).flatten()
     labels_flat = labels.flatten()
@@ -210,7 +202,6 @@ for _ in trange(epochs, desc="Epoch"):
     
     
     # Validation
-	#validation with dev set 
 
     # Put model in evaluation mode to evaluate loss on the validation set
     model.eval()
@@ -240,5 +231,5 @@ for _ in trange(epochs, desc="Epoch"):
         eval_accuracy += tmp_eval_accuracy
         nb_eval_steps += 1
 
-model.save_pretrained(r"C:\Users\alecr\Projects\assignments\Semantic-Health\alec-wine-reviews\models\models-XLNet5")
+model.save_pretrained(r"C:\Users\alecr\Projects\assignments\Semantic-Health\alec-wine-reviews\models\models-XLNet4")
 #print("Validation Accuracy: {}".format(eval_accuracy/nb_eval_steps))
