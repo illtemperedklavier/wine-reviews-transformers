@@ -106,3 +106,7 @@ venv.bak/
 /util/glovePickle.50
 /pretrained-BERT tutorial.ipynb
 /util/cola_inputs.py
+/XLNet.py.orig
+data/
+.vs/
+models/
