@@ -36,6 +36,12 @@ data.shape
 data['label'] = data['variety'].replace(label_to_idx)
 labels = data['label'].values
 
+description_list = data["description"].values
+#sentences = tokenize by sentence and rejoin them all together with [SEP] between them and [CLS] at the end
+
+sentences = [' [SEP] '.join(sent_tokenize(phrase)) + ' [SEP] [CLS]' for phrase in description_list]
+#sentences = [sentence+ " [SEP] [CLS]" for sentence in description_list]
+
 
 tokenizer = XLNetTokenizer.from_pretrained('xlnet-base-cased', do_lower_case=True)
 
@@ -62,16 +68,21 @@ def mask_maker(description):
     return z
 
 
-# Create a mask of 1s for each token followed by 0s for padding
+
 for d in description_list:
 	attention_masks.append(mask_maker(d))
-	
-print("masks made")
+
+ 
 """
+# Create a mask of 1s for each token followed by 0s for padding
 for seq in input_ids:
     seq_mask = [float(i>0) for i in seq]
     attention_masks.append(seq_mask)
-	"""
+"""
+
+print("masks made")
+
+
 	
 
 train_inputs, validation_inputs, train_labels, validation_labels = train_test_split(input_ids, labels, random_state=2018, test_size=0.1)
@@ -80,7 +91,7 @@ dev_inputs, test_inputs, dev_labels, test_labels = train_test_split(validation_i
 
 train_masks, validation_masks, _, _ = train_test_split(attention_masks, input_ids,random_state=2018, test_size=0.1)
 
-dev_masks, test_masks, _, _ = train_test_split(attention_masks, input_ids,random_state=2018, test_size=0.1)
+dev_masks, test_masks, _, _ = train_test_split(attention_masks, input_ids,random_state=2018,test_size=0.1)
 
 
 
@@ -92,6 +103,13 @@ train_labels = torch.tensor(train_labels.astype(np.int)).long()
 validation_labels = torch.tensor(validation_labels.astype(np.int)).long()
 train_masks = torch.tensor(train_masks).long()
 validation_masks = torch.tensor(validation_masks).long()
+
+print("train_inputs.shape: ", train_inputs.shape)
+print("validation_inputs: ", validation_inputs.shape)
+print("train_labels", train_labels.shape)
+print("validation_labels", validation_labels.shape)
+print("train_masks", train_masks.shape)
+print("validation_masks", validation_masks.shape)
 
 batch_size = 16
 
@@ -109,9 +127,9 @@ validation_dataloader = DataLoader(validation_data, sampler=validation_sampler, 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 n_gpu = torch.cuda.device_count()
-#torch.cuda.get_device_name(0)
+print(torch.cuda.get_device_name(0))
 
-model = XLNetForSequenceClassification.from_pretrained("xlnet-base-cased", num_labels=10)
+model = XLNetForSequenceClassification.from_pretrained("xlnet-base-cased", num_labels=NUM_WINES)
 
 model.cuda()
 
@@ -126,7 +144,8 @@ optimizer_grouped_parameters = [
 
 optimizer = AdamW(optimizer_grouped_parameters,
                      lr=2e-5)
-					 
+
+
 def flat_accuracy(preds, labels):
     pred_flat = np.argmax(preds, axis=1).flatten()
     labels_flat = labels.flatten()
@@ -209,5 +228,5 @@ for _ in trange(epochs, desc="Epoch"):
         eval_accuracy += tmp_eval_accuracy
         nb_eval_steps += 1
 
-model.save_pretrained(r"C:\Users\alecr\Projects\assignments\Semantic-Health\alec-wine-reviews\models\models-XLNet4")
+model.save_pretrained(r"C:\Users\alecr\Projects\assignments\Semantic-Health\alec-wine-reviews\models\models-XLNet5")
 #print("Validation Accuracy: {}".format(eval_accuracy/nb_eval_steps))

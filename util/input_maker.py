@@ -38,20 +38,20 @@ vectors = np.asarray(vectors)
 
 
 
-def get_inputs_outputs(num_most_common):
+def get_inputs_outputs():
     df = pd.read_csv(r"D:\Data\wine-reviews\winemag-data-130k-v2.csv")
 
     counter = Counter(df['variety'].tolist())
     
-    top_varieties = {i[0]: idx for idx, i in enumerate(counter.most_common(num_most_common))}
-    df = df[df['variety'].map(lambda x: x in top_varieties)]
+    top_10_varieties = {i[0]: idx for idx, i in enumerate(counter.most_common(10))}
+    df = df[df['variety'].map(lambda x: x in top_10_varieties)]
     
     #df['variety'].value_counts()
     
     description_list = df['description'].tolist()
     
     #create a list of the index of the wine type
-    varietal_list = [top_varieties[i] for i in df['variety'].tolist()]
+    varietal_list = [top_10_varieties[i] for i in df['variety'].tolist()]
     varietal_list = np.array(varietal_list)
     
     
@@ -59,7 +59,7 @@ def get_inputs_outputs(num_most_common):
     
     
     
-    df = df[df['variety'].map(lambda x: x in top_varieties)]
+    df = df[df['variety'].map(lambda x: x in top_10_varieties)]
     
     description_list = df['description'].tolist()
     
@@ -67,7 +67,7 @@ def get_inputs_outputs(num_most_common):
     mapped_list, word_list = get_top_x.filter_to_top_x(description_list, 2500, 10)
     
     
-    varietal_list_o = [top_varieties[i] for i in df['variety'].tolist()]
+    varietal_list_o = [top_10_varieties[i] for i in df['variety'].tolist()]
     
     varietal_list = to_categorical(varietal_list_o)
     
@@ -83,45 +83,11 @@ def get_raw_reviews():
 
     counter = Counter(df['variety'].tolist())
         
-    top_varieties = {i[0]: idx for idx, i in enumerate(counter.most_common(10))}
-    df = df[df['variety'].map(lambda x: x in top_varieties)]
+    top_10_varieties = {i[0]: idx for idx, i in enumerate(counter.most_common(10))}
+    df = df[df['variety'].map(lambda x: x in top_10_varieties)]
         
     #df['variety'].value_counts()
         
     description_list = df['description'].tolist()
     return description_list
 
-def get_BERT_inputs_outputs():
-    df = pd.read_csv(r"D:\Data\wine-reviews\winemag-data-130k-v2.csv")
-
-    counter = Counter(df['variety'].tolist())
-    
-    top_varieties = {i[0]: idx for idx, i in enumerate(counter.most_common(10))}
-    df = df[df['variety'].map(lambda x: x in top_varieties)]
-    
-    #df['variety'].value_counts()
-    
-    description_list = df['description'].tolist()
-    
-    description_list = ["[CLS] " + sentence + " [SEP]" for sentence in description_list]
-    
-    #create a list of the index of the wine type
-    varietal_list = [top_varieties[i] for i in df['variety'].tolist()]
-    varietal_list = np.array(varietal_list)
-    
-    
-    varietal_list[:10]
-    
-    
-    
-    #mapped_list, word_list = get_top_x.filter_to_top_x(description_list, 2500, 10)
-    
-
-    
-    varietal_list = to_categorical(varietal_list)
-    
-    #max_review_length = max(len(x) for x in mapped_list)
-    #mapped_list = pad_sequences(mapped_list, maxlen=max_review_length)
-    
-    
-    return description_list, varietal_list

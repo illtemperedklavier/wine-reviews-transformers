@@ -9,7 +9,6 @@ import pandas as pd
 from collections import Counter
 from sklearn.model_selection import train_test_split
 from util import get_top_x
-from keras.callbacks import ModelCheckpoint, Callback, ReduceLROnPlateau, LearningRateScheduler, EarlyStopping, TensorBoard
 
 EMBEDDING_VECTOR_DIM = 64
 
@@ -43,10 +42,6 @@ varietal_list = to_categorical(varietal_list_o)
 max_review_length = max(len(x) for x in mapped_list)
 train_x, test_x, train_y, test_y = train_test_split(mapped_list, varietal_list, test_size=0.3)
 
-#callbacks
-checkpoint = ModelCheckpoint('D:/Projects/Wine Reviews/checkpoints/weights_{epoch:02d}_{val_acc:.2f}.hdf5', verbose=1, save_best_only=True, mode='auto')
-
-
 model = Sequential()
 
 model.add(Embedding(2500, EMBEDDING_VECTOR_DIM, input_length=max_review_length))
@@ -56,7 +51,5 @@ model.add(Dense(100, activation='relu'))
 model.add(Dense(max(varietal_list_o) + 1, activation='softmax'))
 model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 model.fit(train_x, train_y, epochs=5, validation_split=0.1,batch_size=64)
-
-
 
 #plt.plot(history.history['acc'])
