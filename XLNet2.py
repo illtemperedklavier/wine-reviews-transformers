@@ -11,10 +11,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 import torch
 from torch.utils.data import TensorDataset, DataLoader, RandomSampler, SequentialSampler
+import more_itertools as mit
+
 
 NUM_WINES = 20
 MIN_ENTRIES = 5
-data = pd.read_csv(r"C:\Users\alecr\Projects\assignments\Semantic-Health\alec-wine-reviews\data\winemag-data-130k-v2.csv")
+data = pd.read_csv(r"D:\Data\wine-reviews\winemag-data-130k-v2.csv")
 data.head()
 data.columns
 
@@ -36,7 +38,7 @@ labels = data['label'].values
 description_list = data["description"].values
 #sentences = tokenize by sentence and rejoin them all together with [SEP] between them and [CLS] at the end
 
-sentences = [' [SEP] '.join(sent_tokenize(phrase)) + ' [SEP] [CLS]' for phrase in description_list]
+sentences = [' [SEP] '.join(sent_tokenize(phrase)) + ' [SEP]  [CLS]' for phrase in description_list]
 #sentences = [sentence+ " [SEP] [CLS]" for sentence in description_list]
 
 
@@ -52,30 +54,39 @@ MAX_LEN = 128
 input_ids = pad_sequences(input_ids, maxlen=MAX_LEN, dtype="long", truncating="post", padding="post")
 attention_masks = []
 
-def mask_maker(description):
+
+
+
+def mask_maker(tokenized_text):
+    """
+    Since the XLNet tokenizer works weird, I'm going to split after '[', and only take [:-1], 
+    because the last is just part of CLS, and doesn't need a mask
+    """
+    
+    
+    #by description, this should be tokenized_text
     z = np.zeros(MAX_LEN)
     position = 0
     count = 1
-    for sent in sent_tokenize(description):
-        sent_len = len(tokenizer.tokenize(sent))
-        z[position:sent_len+1] = count
+    
+    token_groups = list(mit.split_after(tokenized_text, lambda x: x == ']'))[:-1]
+    
+    for sent in token_groups:
+        sent_len = len(sent)
+        z[position:position+sent_len+1] = count
         position+=sent_len
         count+=1
     
+    
     return z
+    
 
 
 
-for d in description_list:
-	attention_masks.append(mask_maker(d))
+for t in tokenized_texts:
+	attention_masks.append(mask_maker(t))
 
  
-"""
-# Create a mask of 1s for each token followed by 0s for padding
-for seq in input_ids:
-    seq_mask = [float(i>0) for i in seq]
-    attention_masks.append(seq_mask)
-"""
 
 print("masks made")
 
